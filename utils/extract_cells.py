@@ -61,13 +61,14 @@ class extract_annotation:
         self.data['name'] = []
         for _radius in radius:
             self.data[f'size_{_radius*2}'] = []
+        self.data['category'] = []
 
         # print image shape
         print(f"the shape of the image is {self.image.shape}")
 
         for _index in tqdm(range(self.image.shape[0])):
             _image = self.image[_index]
-            _mask = self.mask[_index]
+            _mask_orig = self.mask[_index]
 
                     # create a color map for the mask
         
@@ -78,7 +79,7 @@ class extract_annotation:
             _image = _image.astype(np.uint8)
             
             # convert (256,256,3) to (256,256)
-            _mask = np.squeeze(_mask)
+            _mask = np.squeeze(_mask_orig)
             
 
             # make a segmentation as binary, background is 0, foreground is 1
@@ -108,6 +109,11 @@ class extract_annotation:
             for _instance in range(1, number_of_instances + 1):
                 # get the center for each instance
                 _center = np.where(segmented_cells_by_instance == _instance)
+
+                # catogory of the cell
+                category = np.unique(_mask_orig[segmented_cells])
+                assert len(category) == 1, "the cell should only have one category"
+                category = category[0]
                 _center = np.mean(_center, axis = 1)
                 _center = np.round(_center)
                 _center = tuple(_center)
@@ -115,6 +121,7 @@ class extract_annotation:
                 _center = (int(_center[0]), int(_center[1]))
                 # check if we are able to extract the cell with the max radius
                 max_radius = np.max(radius)
+                
                 if _center[0] - max_radius >= 0 and _center[0] + max_radius < _image.shape[0] and _center[1] - max_radius >= 0 and _center[1] + max_radius < _image.shape[0]:
                     
 
@@ -124,11 +131,17 @@ class extract_annotation:
 
                     for _num in range(len(radius)):
                         self.data[f'size_{radius[_num]*2}'].append(cropped_images_list[_num])
+
+                    self.data['category'].append(category)
                 else:
                     pass
-                    #print("skip this cell")
+                
+            
         return self.data
     
+    def save(self):
+
+        
 
 
 if __name__ == "__main__":
@@ -139,16 +152,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     extract_annotation = extract_annotation(args.image_npy_dir, args.types_npy_dir, args.masks_npy_dir)
-    data = extract_annotation.extract()
+    extract_annotation.extract()
+    extract_annotation.save(''
+
+    # save the data
+
     
 
-    print('How many instances are there in total?')
-    print(len(data['name']))
-
-    print('How many instances are there in each size?')
-    for key in data.keys():
-        if 'size' in key:
-            print(key, len(data[key]))
+    # how to ran this file
+    # example 
+    # python extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/images.npy --types_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_1/masks/fold1/masks.npy
+    # python extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_2/images/fold2/images.npy --types_npy_dir ../Dataset/pannuke/Fold_2/images/fold2/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_2/masks/fold2/masks.npy
+    # python extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/images.npy --types_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_3/masks/fold3/masks.npy
 
     
             
