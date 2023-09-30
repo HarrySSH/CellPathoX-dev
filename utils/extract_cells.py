@@ -184,9 +184,9 @@ if __name__ == "__main__":
 
     # how to ran this file
     # example 
-    # python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/images.npy --types_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_1/masks/fold1/masks.npy --image_folder ./Data/folder_1
+    # nohup python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/images.npy --types_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_1/masks/fold1/masks.npy --image_folder ./Data/folder_1 &
     # python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_2/images/fold2/images.npy --types_npy_dir ../Dataset/pannuke/Fold_2/images/fold2/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_2/masks/fold2/masks.npy --image_folder ./Data/folder_2
-    # python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/images.npy --types_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_3/masks/fold3/masks.npy --image_folder ./Data/folder_3
+    # nohup python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/images.npy --types_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_3/masks/fold3/masks.npy --image_folder ./Data/folder_3 &
 
     
             
