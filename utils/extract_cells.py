@@ -113,7 +113,7 @@ class extract_annotation:
 
                 # catogory of the cell
                 category = np.unique(_mask_orig[segmented_cells])
-                assert len(category) == 1, "the cell should only have one category"
+                assert len(category) == 1, f"the cell should only have one category, but we have {len(category)} categories and they are {category}"
                 category = category[0]
                 _center = np.mean(_center, axis = 1)
                 _center = np.round(_center)
@@ -183,9 +183,9 @@ if __name__ == "__main__":
 
     # how to ran this file
     # example 
-    # python extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/images.npy --types_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_1/masks/fold1/masks.npy
-    # python extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_2/images/fold2/images.npy --types_npy_dir ../Dataset/pannuke/Fold_2/images/fold2/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_2/masks/fold2/masks.npy
-    # python extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/images.npy --types_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_3/masks/fold3/masks.npy
+    # python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/images.npy --types_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_1/masks/fold1/masks.npy --image_folder ./Data/folder_1
+    # python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_2/images/fold2/images.npy --types_npy_dir ../Dataset/pannuke/Fold_2/images/fold2/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_2/masks/fold2/masks.npy --image_folder ./Data/folder_2
+    # python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/images.npy --types_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_3/masks/fold3/masks.npy --image_folder ./Data/folder_3
 
     
             
