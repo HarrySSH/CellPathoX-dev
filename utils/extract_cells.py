@@ -4,6 +4,7 @@ import matplotlib.patches as patches
 from matplotlib import colors
 import argparse
 
+import os 
 from scipy import ndimage as ndi
 from skimage import (
     color, feature, filters, measure, morphology, segmentation, util
@@ -139,7 +140,27 @@ class extract_annotation:
             
         return self.data
     
-    def save(self):
+    def save(self, save_dir= None):
+        assert save_dir is not None, "please specify the save directory"
+        # save each image by name + size, under the save_dir/size/category
+        # save the data
+        for _index in tqdm(range(len(self.data['name']))):
+            _name = self.data['name'][_index]
+            _category = self.data['category'][_index]
+            for _key in self.data.keys():
+                if _key != 'name' and _key != 'category':
+                    _size = _key.split('_')[1]
+                    _size = int(_size)
+                    _image = self.data[_key][_index]
+                    # create the directory if not exist
+                    _dir = f'{save_dir}/{_size}'
+                    if not os.path.exists(_dir):
+                        os.makedirs(_dir)
+                    _dir = f'{_dir}/{_category}'
+                    if not os.path.exists(_dir):
+                        os.makedirs(_dir)
+                    _dir = f'{_dir}/{_name}.png'
+                    plt.imsave(_dir, _image)
 
         
 
@@ -149,11 +170,12 @@ if __name__ == "__main__":
     parser.add_argument('--image_npy_dir', type = str, default = 'images.npy', help = 'the directory of the image npy file')
     parser.add_argument('--types_npy_dir', type = str, default = 'types.npy', help = 'the directory of the types npy file')
     parser.add_argument('--masks_npy_dir', type = str, default = 'masks.npy', help = 'the directory of the masks npy file')
+    parser.add_argument('--image_folder', type = str, default = 'images', help = 'the directory of the image folder')
     args = parser.parse_args()
 
     extract_annotation = extract_annotation(args.image_npy_dir, args.types_npy_dir, args.masks_npy_dir)
     extract_annotation.extract()
-    extract_annotation.save(''
+    extract_annotation.save(save_dir = args.image_folder)   
 
     # save the data
 
