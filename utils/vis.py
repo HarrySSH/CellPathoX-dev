@@ -39,7 +39,7 @@ class show_annotation:
         self.mask = np.load(self.masks_npy_dir)[self.index]
         self.mask = np.argmax(self.mask, axis = -1)
         self.mask = np.expand_dims(self.mask, axis = -1)
-    
+        
     def show(self, legand = True):
 
         # create a color map for the mask
@@ -105,7 +105,7 @@ class show_annotation:
         # make a segmentation as binary, background is 0, foreground is 1
         mask = np.where(mask == 5, 0, 1)
 
-        print(mask.shape)
+        
         cells = mask.copy()
         distance = ndi.distance_transform_edt(cells)
         local_max_coords = feature.peak_local_max(distance, min_distance=7)
