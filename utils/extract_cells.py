@@ -50,7 +50,7 @@ class extract_annotation:
 
 
 
-    def extract(self, radius = [100,50,25,10]):
+    def extract(self, radius = [100,50,25,10], save_dir = None):
         ### first extract the instance for each cell
         ### find the center for the cells
         ### check if we are able  to extract the cell with the max radius
@@ -58,14 +58,15 @@ class extract_annotation:
         ### if no, then skip the cell
 
         # return is stored in a dictionary
+
+        
         self.data = {}
         self.data['name'] = []
         for _radius in radius:
             self.data[f'size_{_radius*2}'] = []
         self.data['category'] = []
 
-        # print image shape
-        print(f"the shape of the image is {self.image.shape}")
+        
 
         for _index in tqdm(range(self.image.shape[0])):
             _image = self.image[_index]
@@ -126,10 +127,13 @@ class extract_annotation:
                 _center = np.mean(_center, axis = 1)
                 _center = np.round(_center)
                 _center = tuple(_center)
+
                 ## make them int
                 _center = (int(_center[0]), int(_center[1]))
                 # check if we are able to extract the cell with the max radius
-                max_radius = np.max(radius)
+    
+                max_radius = max(radius)
+
                 
                 if _center[0] - max_radius >= 0 and _center[0] + max_radius < _image.shape[0] and _center[1] - max_radius >= 0 and _center[1] + max_radius < _image.shape[0]:
                     
@@ -141,34 +145,36 @@ class extract_annotation:
                     for _num in range(len(radius)):
                         self.data[f'size_{radius[_num]*2}'].append(cropped_images_list[_num])
 
+                        _name = str(_index) + '_' + str(_instance) +'_'+ str(_center)[0] + '_' + str(_center)[1]
+                        _category = category
+                        _size = radius[_num]*2
+                        _image = cropped_images_list[_num]
+
+                        # create the directory if not exist
+
+
+                        self.save(_size, _image, _name, _category, save_dir = save_dir)
+
                     self.data['category'].append(category)
                 else:
                     pass
-                
-            
+          
         return self.data
     
-    def save(self, save_dir= None):
+    def save(self, size, image, name, category,save_dir= None):
         assert save_dir is not None, "please specify the save directory"
         # save each image by name + size, under the save_dir/size/category
         # save the data
-        for _index in tqdm(range(len(self.data['name']))):
-            _name = self.data['name'][_index]
-            _category = self.data['category'][_index]
-            for _key in self.data.keys():
-                if _key != 'name' and _key != 'category':
-                    _size = _key.split('_')[1]
-                    _size = int(_size)
-                    _image = self.data[_key][_index]
-                    # create the directory if not exist
-                    _dir = f'{save_dir}/{_size}'
-                    if not os.path.exists(_dir):
-                        os.makedirs(_dir)
-                    _dir = f'{_dir}/{_category}'
-                    if not os.path.exists(_dir):
-                        os.makedirs(_dir)
-                    _dir = f'{_dir}/{_name}.png'
-                    plt.imsave(_dir, _image)
+        
+        # size 
+        _dir = save_dir + '/' + str(size)
+        if not os.path.exists(_dir):
+            os.makedirs(_dir)
+        _dir = f'{_dir}/{category}'
+        if not os.path.exists(_dir):
+            os.makedirs(_dir)
+        _dir = f'{_dir}/{name}.png'
+        plt.imsave(_dir, image)
 
         
 
@@ -182,8 +188,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     extract_annotation = extract_annotation(args.image_npy_dir, args.types_npy_dir, args.masks_npy_dir)
-    extract_annotation.extract()
-    extract_annotation.save(save_dir = args.image_folder)   
+    metatada = extract_annotation.extract(save_dir=args.image_folder)
+    
 
     # save the data
 
