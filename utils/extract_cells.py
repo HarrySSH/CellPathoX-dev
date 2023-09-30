@@ -113,8 +113,15 @@ class extract_annotation:
 
                 # catogory of the cell
                 category = np.unique(_mask_orig[segmented_cells])
+                # remove 0
+                category = category[category != 0]
                 # use the category with the most pixels
-                category = np.argmax(np.bincount(category))
+                # besides 0 the category should have only one value
+                if len(category) > 1:
+                    # choose the most frequent category
+                    category = np.argmax(np.bincount(category))
+                else:
+                    category = category[0]
                 
                 _center = np.mean(_center, axis = 1)
                 _center = np.round(_center)
