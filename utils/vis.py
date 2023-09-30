@@ -115,6 +115,15 @@ class show_annotation:
 
         segmented_cells = segmentation.watershed(-distance, markers, mask=cells)
 
+    
+        
+        
+        
+        # extract all the instances out
+        
+
+
+        
         # show the image
         self.ax[0].imshow(self.image)
 
