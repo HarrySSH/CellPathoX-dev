@@ -35,8 +35,10 @@ class show_annotation:
         # load data in the most efficient way, 
         # we only need one image and its corresponding label and mask
         self.image = np.load(self.image_npy_dir)[self.index]
+        
         self.tissue_type = np.load(self.types_npy_dir)[self.index]
         self.mask = np.load(self.masks_npy_dir)[self.index]
+        
         self.mask = np.argmax(self.mask, axis = -1)
         self.mask = np.expand_dims(self.mask, axis = -1)
         
@@ -152,6 +154,7 @@ if __name__ == "__main__":
 
     show_annotation = show_annotation(args.image_npy_dir, args.types_npy_dir, args.masks_npy_dir, args.image_ID)
     #show_annotation.show(legand=False)
+    #show_annotation.show()
     show_annotation.show_by_instance()
 
     

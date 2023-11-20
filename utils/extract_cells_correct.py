@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib import colors
 import argparse
-from skimage import 
+
 import os 
 from scipy import ndimage as ndi
 from skimage import (
     color, feature, filters, measure, morphology, segmentation, util
 )
 from skimage.color import label2rgb
+
 
 from tqdm import tqdm
 class extract_annotation:
@@ -21,21 +22,25 @@ class extract_annotation:
 
         # load data in the most efficient way, 
         # we only need one image and its corresponding label and mask
-        self.image = np.load(self.image_npy_dir)
+        
         self.tissue_type = np.load(self.types_npy_dir)
+        
+        self.image = np.load(self.image_npy_dir)
         self.mask = np.load(self.masks_npy_dir)
 
+        
+
 
         
         
-        self.mask = np.argmax(self.mask, axis = -1)
-        self.mask = np.expand_dims(self.mask, axis = -1)
+        #self.mask = np.argmax(self.mask, axis = -1)
+        #self.mask = np.expand_dims(self.mask, axis = -1)
 
         
 
         self.cmap = colors.ListedColormap(['black', 'red', 'blue', 'green', 'yellow', 'white'])
         self.bounds = [0,1,2,3,4,5]
-        self.norm = colors.BoundaryNorm(self.bounds, self.cmap.N)
+        #self.norm = colors.BoundaryNorm(self.bounds, self.cmap.N)
 
     def extract_cells(self, _image, _center, radius):
         """
@@ -54,9 +59,7 @@ class extract_annotation:
             image_crops.append(_patch)
 
         return image_crops
-
-
-
+    
     def extract(self, radius = [100,50,25,10], save_dir = None):
         ### first extract the instance for each cell
         ### find the center for the cells
@@ -66,114 +69,81 @@ class extract_annotation:
 
         # return is stored in a dictionary
 
-        
         self.data = {}
         self.data['name'] = []
         for _radius in radius:
             self.data[f'size_{_radius*2}'] = []
         self.data['category'] = []
-
         
 
         for _index in tqdm(range(self.image.shape[0])):
+            
             _image = self.image[_index]
             _mask_orig = self.mask[_index]
 
-                    # create a color map for the mask
+            # create a color map for the mask
         
-
-        
-
             # convert the npy image to uint8
             _image = _image.astype(np.uint8)
             
             # convert (256,256,3) to (256,256)
             _mask = np.squeeze(_mask_orig)
-            
-
-            # make a segmentation as binary, background is 0, foreground is 1
-            _mask = np.where(_mask == 5, 0, 1)
 
             
-            cells = _mask.copy()
-            distance = ndi.distance_transform_edt(cells)
-            local_max_coords = feature.peak_local_max(distance, min_distance=7)
-            local_max_mask = np.zeros(distance.shape, dtype=bool)
-            local_max_mask[tuple(local_max_coords.T)] = True
-            markers = measure.label(local_max_mask)
+            # how many instance in the mask, any value greater than , because the 0 is not a instance and 1 is the background
+            _instance = np.unique(_mask)
+            # remove 0 and 1 
+            if len(_instance) >= 2:
+                assert _instance[0] == 0, "the first value should be 0"
+                assert _instance[1] == 1, "the second value should be 1"
+                _instance = _instance[2:]
 
-            segmented_cells = segmentation.watershed(-distance, markers, mask=cells)
+            elif len(_instance) == 1:
+                # show the image
+                
 
-            ### get them by instance
-            ### get the center for each instance
-            ### get the radius for each instance
-            ### extract the cell for each instance
-            ### store the data in a dictionary
-            ### return the dictionary
+                assert _instance[0] == 0, "the first value should be 0"
+                continue
+            else:
+                continue
+            # assert _instance[:2] is 0 and 1
             
-            segmented_cells_by_instance = measure.label(segmented_cells)
+            
+            # extract the instance
+            for _instance_index in range(len(_instance)):
+                _instance_value = _instance[_instance_index]
+                # extract the instance
+                _instance_mask = np.where(_mask == _instance_value, 1, 0)
+                # check the value is in which channel 0 -4, 
+                sum_value = np.sum(_instance_mask, axis = (0,1))
+                # find the channel with the max value
+                _channel = np.argmax(sum_value)
+                # extract the instance
+                _instance_mask = _instance_mask[:,:, _channel]
+                # find the center of the instance, the mean of the x and y value when the value is 1
+                _center = np.where(_instance_mask == 1)
+                _center = np.mean(_center, axis = 1)
 
-            number_of_instances = np.max(segmented_cells_by_instance)
-            # getting each object
-            for _instance in range(1, number_of_instances + 1):
-                # get the center for each instance
-                one_segmented_cells = np.where(segmented_cells_by_instance == _instance)
-
-                # catogory of the cell
-                category = np.unique(_mask_orig[one_segmented_cells])
-                
-                # remove 5 because 5 is background
-                category = category[category != 5]
-                # use the category with the most pixels
-                # besides 0 the category should have only one value
-                if len(category) > 1:
-                    # choose the most frequent category
-                    category = np.argmax(np.bincount(category))
-                else:
-                    if len(category) == 0:
-                        # if the category is empty, then skip this instance
-                        # show the image for this instance
-                        # show the image and the segmentation side by side
-                        # create a figure
-                        fig, ax = plt.subplots(1,2, figsize = (20,10))
-                        # show the image
-                        ax[0].imshow(_image)
-                        # show the binary map using one_segmented_cells
-                        cell_mask = np.zeros(cell_mask.shape)
-                        cell_mask[one_segmented_cells] = 1
-
-                        ax[1].imshow(cell_mask, cmap = 'gray')
-                        plt.show()
-                        # raise error
-                        raise ValueError("the category is empty")
-                    else:
-                        category = category[0]
-                
-                
-
-                _center = np.mean(one_segmented_cells, axis = 1)
-                _center = np.round(_center)
-                _center = tuple(_center)
+                # check if we are able to extract the cell with the max radius
 
                 ## make them int
                 _center = (int(_center[0]), int(_center[1]))
                 # check if we are able to extract the cell with the max radius
     
                 max_radius = max(radius)
-
                 
                 if _center[0] - max_radius >= 0 and _center[0] + max_radius < _image.shape[0] and _center[1] - max_radius >= 0 and _center[1] + max_radius < _image.shape[0]:
                     
 
                     cropped_images_list = self.extract_cells(_image, _center, radius)
-                    self.data['name'].append(str(_index) + '_' + str(_instance) +'_'+ str(_center)[0] + '_' + str(_center)[1])
+                    self.data['name'].append(str(_instance_index) + '_' + str(_instance) +'_'+ str(_center)[0] + '_' + str(_center)[1])
                     # add the center
 
                     for _num in range(len(radius)):
                         self.data[f'size_{radius[_num]*2}'].append(cropped_images_list[_num])
 
-                        _name = str(_index) + '_' + str(_instance) +'_'+ str(_center[0])+ '_' + str(_center[1])
-                        _category = category
+                        _name = str(_channel) + '_' + str(_instance_index) +'_'+ str(_center[0])+ '_' + str(_center[1])
+                        _category = _channel
                         _size = radius[_num]*2
                         _image = cropped_images_list[_num]
 
@@ -182,12 +152,14 @@ class extract_annotation:
 
                         self.save(_size, _image, _name, _category, save_dir = save_dir)
 
-                    self.data['category'].append(category)
+                    self.data['category'].append(_channel)
                 else:
                     pass
-          
         return self.data
-    
+
+                
+
+
     def save(self, size, image, name, category,save_dir= None):
         assert save_dir is not None, "please specify the save directory"
         # save each image by name + size, under the save_dir/size/category
@@ -203,9 +175,6 @@ class extract_annotation:
         _dir = f'{_dir}/{name}.png'
         plt.imsave(_dir, image)
 
-        
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--image_npy_dir', type = str, default = 'images.npy', help = 'the directory of the image npy file')
@@ -220,27 +189,12 @@ if __name__ == "__main__":
     # how many datapoint we have
     print('How many datapoint we have')
     print(len(metatada['name']))
-    
 
-    # save the data
-
-    
 
     # how to ran this file
     # example 
-    # python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/images.npy --types_npy_dir ../Dataset/pannuke/Fold_1/images/fold1/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_1/masks/fold1/masks.npy --image_folder ./Data/folder_1 
+    # python utils/extract_cells_correct.py --image_npy_dir images.npy --types_npy_dir types.npy --masks_npy_dir masks.npy --image_folder ./Data/folder_1 
     # python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_2/images/fold2/images.npy --types_npy_dir ../Dataset/pannuke/Fold_2/images/fold2/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_2/masks/fold2/masks.npy --image_folder ./Data/folder_2
-    # python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/images.npy --types_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_3/masks/fold3/masks.npy --image_folder ./Data/folder_3 
+    # python utils/extract_cells.py --image_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/images.npy --types_npy_dir ../Dataset/pannuke/Fold_3/images/fold3/types.npy --masks_npy_dir ../Dataset/pannuke/Fold_3/masks/fold3/masks.npy --image_folder ./Data/folder_3
 
-    
             
-            
-    
-            
-
-
-
-
-        
-
-
