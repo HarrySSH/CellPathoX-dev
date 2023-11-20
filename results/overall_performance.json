@@ -1,4 +1,0 @@
-{'image_size': 20, 'accuracy': 0.38195691202872534, 'balanced_accuracy': 0.22571225902498107, 'auc_ovr_macro': 0.6351833622236918, 'auc_ovr_weighted': 0.6253869618782301}
-{'image_size': 50, 'accuracy': 0.3539048473967684, 'balanced_accuracy': 0.2094993162385074, 'auc_ovr_macro': 0.6329434799563988, 'auc_ovr_weighted': 0.5874974853660854}
-{'image_size': 100, 'accuracy': 0.3413375224416517, 'balanced_accuracy': 0.1856416395764622, 'auc_ovr_macro': 0.5612115194292273, 'auc_ovr_weighted': 0.5245330790737391}
-{'image_size': 200, 'accuracy': 0.39631956912028726, 'balanced_accuracy': 0.21088213907724535, 'auc_ovr_macro': 0.6434315935147087, 'auc_ovr_weighted': 0.6050567677714435}  
